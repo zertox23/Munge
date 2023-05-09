@@ -1,9 +1,26 @@
-import time
+"""
+This module generates variations of passwords based on the input passlist file.
+
+Authors: iqthegoat & stochasticsanity
+Based on the work done by Th3S3cr3tAg3nt
+
+Functions:
+- generate_wordlist(word: str, level: int) -> List[str]: 
+    - Generates a list of variations of a given word based on the specified level.
+- generate_lines(source: io.TextIOWrapper, level: int) -> List[Tuple[str, int]]: 
+    - Generates a list of tuples containing a word and its corresponding level.
+- munge(arguments: argparse.Namespace) -> None: 
+    - Uses generate_wordlist() and generate_lines() to create variations of
+      passwords and write them to an output file.
+
+"""
+
 import argparse
 from multiprocessing import Pool
 import io
-import colorama
+import time
 from typing import List, Tuple
+import colorama
 
 import dicts
 
@@ -11,6 +28,21 @@ LEET_DICT = dicts.leetspeak_dict
 SUFFIXES = dicts.suffixes
 
 def generate_wordlist(word_and_level: Tuple[str, int]) -> List[str]:
+    """
+    Generates a list of variations of a given word based on the specified level. 
+
+    The variations include:
+    - The original word, capitalized, uppercased, swapcased, and capitalized swapcased versions of the word.
+    - Leetspeak variations of these word versions based on the level.
+
+    Args:
+        word_and_level (Tuple[str, int]): A tuple containing a word and a level.
+            word (str): The original word to generate variations of.
+            level (int): The level of complexity for generating variations. The higher the level, the more complex the variations.
+
+    Returns:
+        List[str]: A list of variations of the original word. The length and contents of the list depend on the level.
+    """
     wordlist = []
     word, level = word_and_level # Because python pickling has always sucked
 
@@ -21,6 +53,17 @@ def generate_wordlist(word_and_level: Tuple[str, int]) -> List[str]:
     capswapcased = capitalized.swapcase()
 
     def add_to_wordlist(key: int, word_variant: str) -> None:
+        """
+        Converts a given word variant into leetspeak and appends it to the wordlist. 
+        Note: This function modifies the 'wordlist' variable from the outer function's scope.
+
+        Args:
+            key (int): The key for the leetspeak dictionary to use.
+            word_variant (str): The variant of the original word to convert into leetspeak.
+
+        Returns:
+            None: This function doesn't return anything. It modifies the 'wordlist' list in place.
+        """
         leeted_words = " ".join([LEET_DICT[key].get(x, x) for x in word_variant])
         wordlist.append(leeted_words)
 
@@ -46,6 +89,18 @@ def generate_wordlist(word_and_level: Tuple[str, int]) -> List[str]:
     return wordlist
 
 def generate_lines(source: io.TextIOWrapper, level: int) -> List[Tuple[str, int]]:
+    """
+    Generates a list of tuples containing a word and its corresponding level.
+    Also appends range and suffix additions to the words
+
+    Args:
+    - source (io.TextIOWrapper): The input passlist file.
+    - level (int): The level of variation to generate.
+
+    Returns:
+    - List[Tuple[str, int]]: A list of tuples containing a word and its corresponding level.
+    """
+     
     favored_number_ranges = [
         range(24),
         range(50, 99, 10),
@@ -71,6 +126,13 @@ def generate_lines(source: io.TextIOWrapper, level: int) -> List[Tuple[str, int]
     return lines
 
 def munge(args: argparse.Namespace) -> None:
+    """
+    Uses generate_wordlist() and generate_lines() to create variations of 
+    passwords and write them to an output file.
+    
+    Args:
+    - arguments (argparse.Namespace): The parsed command-line arguments.
+    """
     # No need to start the timer if we're not ouputting it
     if args.verbose: 
         start = time.time()
