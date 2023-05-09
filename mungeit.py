@@ -7,16 +7,6 @@ from typing import List, Tuple
 
 import dicts
 
-colorama.init()
-parser = argparse.ArgumentParser(description="Generate variations of passwords")
-parser.add_argument("-i", "--input", type=str, help="Passlist input path")
-parser.add_argument("-o", "--output", type=str, help="Munged passlist output path")
-parser.add_argument("-l", "--level", type=int, help="Level [0-8] (default 5)", default=5)
-parser.add_argument("-v", "--verbose", action="store_true",
-                    help=("Whether to print anything or not"), default=False)
-arguments = parser.parse_args()
-
-
 LEET_DICT = dicts.leetspeak_dict
 SUFFIXES = dicts.suffixes
 
@@ -57,55 +47,74 @@ def generate_wordlist(word_and_level: Tuple[str, int]) -> List[str]:
 
 def generate_lines(source: io.TextIOWrapper, level: int) -> List[Tuple[str, int]]:
     favored_number_ranges = [
-                range(24),
-                range(50, 99, 10),
+        range(24),
+        range(50, 99, 10),
     ]
 
-    lines = []
-    
+    word_variants = []
+
     for wrd in set(map(str.strip, map(str.lower, source))):
         for suffix in SUFFIXES:
-                lines.append((wrd + suffix, level))
+            word_variants.append(wrd + suffix)
 
         for favored_range in favored_number_ranges:
             for number in favored_range:
-                lines.append((wrd + "0" + str(number), level))
-                lines.append((wrd + str(number), level))
+                word_variants.append(wrd + "0" + str(number))
+                word_variants.append(wrd + str(number))
 
-        for i in range(1970, 2015): # Previously only did it for 1970, fixed! 
-            lines.append((wrd + str(i), level))
+        for i in range(1970, 2015):  # Previously only did it for 1970, fixed!
+            word_variants.append(wrd + str(i))
 
-    return list(set(lines))
+    # Create tuples (word, level) at the end
+    lines = [(word_variant, level) for word_variant in set(word_variants)]
 
-start = time.time()
+    return lines
 
-if __name__ == "__main__":
-    lines = []
+def munge(args: argparse.Namespace) -> None:
+    # No need to start the timer if we're not ouputting it
+    if args.verbose: 
+        start = time.time()
+
     # Takes every line, adds range and suffix additions, and makes tuples with the argument.level
-    with open(arguments.input, "r", encoding="utf-8", errors="ignore") as source:
-        lines = generate_lines(source, arguments.level)
+    with open(args.input, "r", encoding="utf-8", errors="ignore") as source:
+        lines = generate_lines(source, args.level)
 
-    WORDLIST = []
-
+    # This is then fed into generate wordlist
+    wordlist = []
     with Pool() as pool:
         results = pool.imap_unordered(generate_wordlist, lines, chunksize=10000)
         for item in results:
-            WORDLIST.extend(item)
+            wordlist.extend(item)
 
+    setted = list(set(list(wordlist)))
 
-    setted = list(set(list(WORDLIST)))
-    if arguments.output:
-        with io.open(arguments.output, "a", encoding="utf-8", errors="ignore") as out:
+    # Finally, it's output to a file.
+    if args.output:
+        with io.open(args.output, "a", encoding="utf-8", errors="ignore") as out:
             for word in setted:
                 out.write(word + "\n")
 
-
-    if arguments.verbose:
-        settedln = len(setted)
-        if settedln == 0:
+    # Output a timer for cred.
+    if args.verbose:
+        settled_len = len(setted)
+        if settled_len == 0:
             pass
-        else:
-            print(
-                colorama.Fore.GREEN
-                + f"GENERATED {settedln} IN {str(int(time.time() - start))} second\s \noutput  -> {arguments.output}\nlevel   -> {arguments.level}\nverbose -> {arguments.verbose}"
-            )
+        print(
+            colorama.Fore.GREEN
+            + f"GENERATED {settled_len} IN {str(int(time.time() - start))} seconds\n"
+            + f"output  -> {args.output}\n"
+            + f"level   -> {args.level}\n"
+            + f"verbose -> {args.verbose}"
+        )
+
+if __name__ == "__main__":
+    colorama.init()
+    parser = argparse.ArgumentParser(description="Generate variations of passwords")
+    parser.add_argument("-i", "--input", type=str, help="Passlist input path")
+    parser.add_argument("-o", "--output", type=str, help="Munged passlist output path")
+    parser.add_argument("-l", "--level", type=int, help="Level [0-8] (default 5)", default=5)
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help=("Whether to print anything or not"), default=False)
+    arguments = parser.parse_args()
+
+    munge(arguments)
