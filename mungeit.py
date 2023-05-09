@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser(description="generate variations of passwords")
 parser.add_argument("i", type=str, help="passlist path")
 parser.add_argument("o", type=str, help="output path")
 parser.add_argument(
-    "-level", type=int, help="lines.append level [0-8] (default 5)", default=5
+    "-level", type=int, help="level [0-8] (default 5)", default=5
 )
 parser.add_argument(
     "-verbose",
