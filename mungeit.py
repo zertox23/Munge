@@ -20,15 +20,9 @@ parser.add_argument(
     help=("wether to print anything or not default=False"),
     default=False,
 )
-parser.add_argument(
-    "-mp",
-    type=int,
-    help="How many multiproccesses? default = N (bigger = faster but more resourse intesive) ",
-    default=4,
-)
 
-args = parser.parse_args()
-num_process = args.mp
+
+
 
 leet_speak_dict = leetspeak = {
     1: {
