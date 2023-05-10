@@ -18,30 +18,32 @@ Functions:
 import argparse
 from multiprocessing import Pool
 import io
+import os
 import time
 from typing import List, Tuple
 import colorama
 
-import dicts
+import dictionaries
 
-LEET_DICT = dicts.leetspeak_dict
-SUFFIXES = dicts.suffixes
+LEET_DICT = dictionaries.leetspeak_dict
+SUFFIXES = dictionaries.suffixes
 
 def generate_wordlist(word_and_level: Tuple[str, int]) -> List[str]:
     """
     Generates a list of variations of a given word based on the specified level. 
 
     The variations include:
-    - The original word, capitalized, uppercased, swapcased, and capitalized swapcased versions of the word.
+    - The original word, capitalized, uppercased, swapcased, 
+      and capitalized swapcased versions of the word.
     - Leetspeak variations of these word versions based on the level.
 
     Args:
         word_and_level (Tuple[str, int]): A tuple containing a word and a level.
             word (str): The original word to generate variations of.
-            level (int): The level of complexity for generating variations. The higher the level, the more complex the variations.
+            level (int): The higher the level, the more complex the variations.
 
     Returns:
-        List[str]: A list of variations of the original word. The length and contents of the list depend on the level.
+        List[str]: A list of variations of the original word, dependant on the level.
     """
     wordlist = []
     word, level = word_and_level # Because python pickling has always sucked
@@ -100,7 +102,7 @@ def generate_lines(source: io.TextIOWrapper, level: int) -> List[Tuple[str, int]
     Returns:
     - List[Tuple[str, int]]: A list of tuples containing a word and its corresponding level.
     """
-     
+
     favored_number_ranges = [
         range(24),
         range(50, 99, 10),
@@ -134,11 +136,11 @@ def munge(args: argparse.Namespace) -> None:
     - arguments (argparse.Namespace): The parsed command-line arguments.
     """
     # No need to start the timer if we're not ouputting it
-    if args.verbose: 
+    if args.verbose:
         start = time.time()
 
     # Takes every line, adds range and suffix additions, and makes tuples with the argument.level
-    with open(args.input, "r", encoding="utf-8", errors="ignore") as source:
+    with io.open(args.input, "r", encoding="utf-8", errors="ignore") as source:
         lines = generate_lines(source, args.level)
 
     # This is then fed into generate wordlist
@@ -151,10 +153,13 @@ def munge(args: argparse.Namespace) -> None:
     setted = list(set(list(wordlist)))
 
     # Finally, it's output to a file.
-    if args.output:
-        with io.open(args.output, "a", encoding="utf-8", errors="ignore") as out:
-            for word in setted:
-                out.write(word + "\n")
+    if not args.output:
+        filename, file_extension = os.path.splitext(args.input)
+        args.output = f"{filename}_munged{file_extension}"
+
+    with open(args.output, "a", encoding="utf-8", errors="ignore") as out:
+        for word in setted:
+            out.write(word + "\n")
 
     # Output a timer for cred.
     if args.verbose:
@@ -172,8 +177,8 @@ def munge(args: argparse.Namespace) -> None:
 if __name__ == "__main__":
     colorama.init()
     parser = argparse.ArgumentParser(description="Generate variations of passwords")
-    parser.add_argument("-i", "--input", type=str, help="Passlist input path")
-    parser.add_argument("-o", "--output", type=str, help="Munged passlist output path")
+    parser.add_argument("-i", "--input", type=str, required=True, help="Passlist input file")
+    parser.add_argument("-o", "--output", type=str, help="Munged passlist output file")
     parser.add_argument("-l", "--level", type=int, help="Level [0-8] (default 5)", default=5)
     parser.add_argument("-v", "--verbose", action="store_true",
                         help=("Whether to print anything or not"), default=False)

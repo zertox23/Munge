@@ -1,6 +1,7 @@
 """
-This file contains the large dictonaries used in mungeit.py to improve code readability
+This script just contains dictonaries for the main script. They are to improve code readability. 
 """
+
 leetspeak_dict = leetspeak = {
     1: {
         "a": "4",
