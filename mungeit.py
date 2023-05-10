@@ -159,7 +159,7 @@ def munge(args: argparse.Namespace) -> None:
 
     with open(args.output, "a", encoding="utf-8", errors="ignore") as out:
         for word in setted:
-            out.write(word + "\n")
+            out.write(word.strip().replace(" ","")+ "\n")
 
     # Output a timer for cred.
     if args.verbose:
