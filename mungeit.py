@@ -28,6 +28,27 @@ import dictionaries
 LEET_DICT = dictionaries.leetspeak_dict
 SUFFIXES = dictionaries.suffixes
 
+def caesar_cipher(word: str, shift: int) -> str:
+    """
+    Applies a Caesar cipher shift to the given word.
+
+    Args:
+        word (str): The word to apply the Caesar cipher to.
+        shift (int): The shift value for the Caesar cipher.
+
+    Returns:
+        str: The word after applying the Caesar cipher shift.
+    """
+    result = []
+    for c in word:
+        if c.isupper():
+            result.append(chr((ord(c) - 65 + shift) % 26 + 65))
+        elif c.islower():
+            result.append(chr((ord(c) - 97 + shift) % 26 + 97))
+        else:
+            result.append(c)
+    return ''.join(result)
+
 def generate_wordlist(word_and_level: Tuple[str, int]) -> List[str]:
     """
     Generates a list of variations of a given word based on the specified level. 
@@ -159,7 +180,20 @@ def munge(args: argparse.Namespace) -> None:
 
     with open(args.output, "a", encoding="utf-8", errors="ignore") as out:
         for word in setted:
-            out.write(word.strip().replace(" ","")+ "\n")
+            cleaned_word = word.strip().replace(" ", "")
+            out.write(cleaned_word + "\n")
+
+        if args.caesar:
+            # Apply Caesar cipher shifts from 1 to 26
+            all_words = setted.copy()
+            for shift in range(1, 27):
+                for word in setted:
+                    word_no_spaces = word.replace(" ", "")
+                    shifted_word = caesar_cipher(word_no_spaces, shift)
+                    shifted_word = shifted_word.replace(" ", "")
+                    if shifted_word not in all_words:
+                        out.write(shifted_word + "\n")
+                        all_words.append(shifted_word)
 
     # Output a timer for cred.
     if args.verbose:
@@ -177,11 +211,11 @@ def munge(args: argparse.Namespace) -> None:
 if __name__ == "__main__":
     colorama.init()
     parser = argparse.ArgumentParser(description="Generate variations of passwords")
+    parser.add_argument("-C", "--caesar", action="store_true", default=False, help="Apply Caesar cipher shifts")
     parser.add_argument("-i", "--input", type=str, required=True, help="Passlist input file")
     parser.add_argument("-o", "--output", type=str, help="Munged passlist output file")
     parser.add_argument("-l", "--level", type=int, help="Level [0-8] (default 5)", default=5)
-    parser.add_argument("-v", "--verbose", action="store_true",
-                        help=("Whether to print anything or not"), default=False)
+    parser.add_argument("-v", "--verbose", action="store_true", help=("Whether to print anything or not"), default=False)
     arguments = parser.parse_args()
 
     munge(arguments)

@@ -1,5 +1,5 @@
 """
-This script just contains dictonaries for the main script. They are to improve code readability. 
+This script just contains dictionaries for the main script. They are to improve code readability. 
 """
 
 leetspeak_dict = leetspeak = {
