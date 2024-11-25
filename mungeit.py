@@ -23,7 +23,7 @@ import time
 from typing import List, Tuple
 import colorama
 
-import Munge.dictionaries as dictionaries
+import dictionaries
 
 LEET_DICT = dictionaries.leetspeak_dict
 SUFFIXES = dictionaries.suffixes
@@ -211,18 +211,11 @@ def munge(args: argparse.Namespace) -> None:
 if __name__ == "__main__":
     colorama.init()
     parser = argparse.ArgumentParser(description="Generate variations of passwords")
-    parser.add_argument("-C", "--caesar", action="store_true",
-                        default=False,
-                        help="Apply Caesar cipher shifts")
-    parser.add_argument("-i", "--input", type=str,
-                        required=True, help="Passlist input file")
-    parser.add_argument("-o", "--output", type=str,
-                         help="Munged passlist output file")
-    parser.add_argument("-l", "--level", type=int, 
-                        help="Level [0-8] (default 5)", default=5)
-    parser.add_argument("-v", "--verbose", action="store_true",
-                        help=("Whether to print anything or not"),
-                        default=False)
+    parser.add_argument("-C", "--caesar", action="store_true", default=False, help="Apply Caesar cipher shifts")
+    parser.add_argument("-i", "--input", type=str, required=True, help="Passlist input file")
+    parser.add_argument("-o", "--output", type=str, help="Munged passlist output file")
+    parser.add_argument("-l", "--level", type=int, help="Level [0-8] (default 5)", default=5)
+    parser.add_argument("-v", "--verbose", action="store_true", help=("Whether to print anything or not"), default=False)
     arguments = parser.parse_args()
 
     munge(arguments)
